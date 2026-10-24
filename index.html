@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sổ tay công thức — UET.DSE2049 Lập trình xử lý dữ liệu</title>
+    <meta
+      name="description"
+      content="Sổ tay công thức Python, NumPy, pandas, SQL, regex và thời gian cho môn UET.DSE2049: tra cú pháp, đối số, bẫy thi và ví dụ chạy được trong vài giây."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231b6c80'/%3E%3Cpath d='M10 7.5v17' stroke='%23ffffff' stroke-width='2'/%3E%3Ccircle cx='10' cy='11.5' r='2.4' fill='%23ffffff'/%3E%3Ccircle cx='10' cy='20.5' r='2.4' fill='%23ffffff'/%3E%3Cpath d='M15 11.5h8M15 16h8M15 20.5h5' stroke='%23ffffff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
+    <script>
+      // Ghi chủ đề trước khi vẽ để không nháy màu khi đổi sáng/tối.
+      (function () {
+        var t = null;
+        try {
+          t = localStorage.getItem('dse.theme.v1');
+        } catch (e) {}
+        if (t !== 'light' && t !== 'dark') {
+          t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#sheet">Bỏ qua mục lục, tới nội dung</a>
+
+    <aside class="sidebar" id="sidebar" aria-label="Mục lục sổ tay">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path class="mark-spine" d="M5 3v18" />
+          <circle class="mark-ring" cx="5" cy="7.5" r="2.1" />
+          <circle class="mark-ring" cx="5" cy="16.5" r="2.1" />
+          <path class="mark-rule" d="M10 7.5h10M10 12h10M10 16.5h6.5" />
+        </svg>
+        <span class="brand-text">
+          <span class="brand-name">Sổ tay DSE2049</span>
+          <span class="brand-sub">Lập trình xử lý dữ liệu</span>
+        </span>
+      </div>
+
+      <button class="search-trigger" id="searchTrigger" type="button" aria-haspopup="dialog">
+        <svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+          <circle cx="7" cy="7" r="4.4" />
+          <path d="M10.4 10.4 14 14" />
+        </svg>
+        <span class="search-label">Tìm công thức, bẫy…</span>
+        <kbd class="kbd" id="searchKbd">Ctrl K</kbd>
+      </button>
+
+      <nav class="nav" aria-label="Điều hướng chính">
+        <a class="nav-item" href="#/tong-quan" data-nav="tong-quan">Tổng quan</a>
+        <a class="nav-item" href="#/bay" data-nav="bay">
+          <span>Từ điển bẫy</span>
+          <span class="nav-count num" id="navTrapCount">0</span>
+        </a>
+        <a class="nav-item" href="#/luyen-tap" data-nav="luyen-tap">
+          <span>Luyện tập</span>
+          <span class="nav-count num" id="navExamCount">0</span>
+        </a>
+        <p class="nav-label">Phần nội dung</p>
+        <div class="nav-sections" id="navSections"></div>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="foot-line">
+          <span class="foot-label">Đã nắm</span>
+          <span class="num" id="footProgress">0/0</span>
+        </div>
+        <div class="foot-track" aria-hidden="true"><i id="footBar" style="width: 0%"></i></div>
+        <p class="foot-meta" id="footMeta"></p>
+      </div>
+    </aside>
+
+    <div class="scrim" id="scrim" hidden></div>
+
+    <header class="topbar">
+      <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-label="Mở mục lục" aria-expanded="false">
+        <svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+          <path d="M2 4h12M2 8h12M2 12h12" />
+        </svg>
+      </button>
+      <div class="topbar-view">
+        <span class="view-kicker" id="viewKicker"></span>
+        <span class="view-name" id="viewName">Tổng quan</span>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn topbar-search" id="topSearch" type="button" aria-label="Tìm công thức, bẫy">
+          <svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <circle cx="7" cy="7" r="4.4" />
+            <path d="M10.4 10.4 14 14" />
+          </svg>
+        </button>
+        <p class="topbar-progress">
+          <span class="num" id="topPercent">0%</span> <span>đã nắm</span>
+        </p>
+        <div class="theme-switch" role="group" aria-label="Chế độ sáng tối">
+          <button type="button" data-theme-set="light">Sáng</button>
+          <button type="button" data-theme-set="dark">Tối</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="sheet" id="sheet" tabindex="-1">
+      <div class="view" id="view"></div>
+    </main>
+
+    <div class="overlay" id="overlay" hidden>
+      <div class="overlay-box" role="dialog" aria-modal="true" aria-label="Tìm kiếm toàn cục">
+        <div class="overlay-field">
+          <svg class="ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <circle cx="7" cy="7" r="4.4" />
+            <path d="M10.4 10.4 14 14" />
+          </svg>
+          <input
+            id="searchInput"
+            type="text"
+            placeholder="Nhập tên hàm, đối số, bẫy — gõ không dấu cũng được"
+            autocomplete="off"
+            spellcheck="false"
+            aria-label="Ô tìm kiếm"
+            aria-controls="searchResults"
+          />
+          <button class="ghost-btn" id="searchClose" type="button">Đóng</button>
+        </div>
+        <p class="overlay-hint">Phím mũi tên di chuyển · Enter mở · Esc đóng</p>
+        <div class="overlay-results" id="searchResults" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <noscript>
+      <div class="noscript">
+        <p>
+          Sổ tay này cần JavaScript để tra cứu công thức và bẫy. Nếu bạn tắt JavaScript, hãy mở trực tiếp các
+          file trong thư mục <code>site/data/</code> để đọc dữ liệu gốc.
+        </p>
+      </div>
+    </noscript>
+
+    <!-- data:start -->
+    <script src="data/00-manifest.js"></script>
+    <script src="data/99-example.js"></script>
+    <script src="data/01-python.js"></script>
+    <script src="data/02-numpy.js"></script>
+    <script src="data/03-pandas-co-ban.js"></script>
+    <script src="data/04-pandas-nang-cao.js"></script>
+    <script src="data/05-du-lieu-sql.js"></script>
+    <script src="data/06-regex-thoi-gian.js"></script>
+    <script src="data/07-bay.js"></script>
+    <script src="data/08-luyen-tap.js"></script>
+    <script src="data/09-bo-19-cau.js"></script>
+    <!-- data:end -->
+    <script src="assets/app.js"></script>
+  </body>
+</html>
