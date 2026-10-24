@@ -2,6 +2,8 @@
 
 Web tĩnh để tra công thức Python / NumPy / pandas / SQL / regex / thời gian và làm đề kiểm tra giữa kỳ môn **UET.DSE2049 – Lập trình xử lý dữ liệu**.
 
+**Đang chạy tại:** https://minhboyee.github.io/uet-dse2049-so-tay/
+
 Mở `index.html` là chạy: không cần server, không cần cài đặt, không gọi API (trừ webfont Google và các link docs).
 
 ## Nội dung

@@ -20,7 +20,7 @@ const CHROME =
   ].find((p) => fs.existsSync(p));
 if (!CHROME) throw new Error('Không tìm thấy Chrome/Edge');
 
-const FILE = 'file:///' + path.resolve('site/index.html').replace(/\\/g, '/');
+const FILE = process.env.SITE_URL || 'file:///' + path.resolve('site/index.html').replace(/\\/g, '/');
 const PORT = 9333 + Math.floor(Math.random() * 200);
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'dse-chrome-'));
 const shots = process.argv.includes('--shots');
