@@ -220,7 +220,7 @@ check('Trả lời tự kiểm có phản hồi đúng', !!picked && !!feedback,
 await ev(`location.hash = '#/luyen-tap'`);
 await sleep(600);
 const list = await ev(`({rows: document.querySelectorAll('.exam-row').length, count: (document.querySelector('[data-exam-count]')||{}).textContent})`);
-check('Danh sách luyện tập có 14 đề', list.rows === 14, JSON.stringify(list));
+check('Danh sách luyện tập có 19 đề', list.rows === 19 && list.count === '19', JSON.stringify(list));
 
 await ev(`location.hash = '#/luyen-tap/de-01a'`);
 await sleep(700);
@@ -282,6 +282,34 @@ const regrade = await ev(`(() => {
 })()`);
 check('Chọn sai bị đánh dấu + hiện đáp án đúng', regrade.wrong === 1 && String(regrade.score).includes('0/20') && String(regrade.result || '').includes('A'), JSON.stringify(regrade));
 
+const explain = await ev(`(() => {
+  location.hash = '#/luyen-tap/de-101';
+  return new Promise((res) => setTimeout(() => {
+    document.querySelector('[data-mode="take"]').click();
+    setTimeout(() => {
+      const q1 = document.querySelector('.q-item[data-n="1"]');
+      const wrong = q1 && q1.querySelector('.opt[data-k="A"]');
+      const before = wrong ? { disabled: wrong.disabled, pressed: wrong.getAttribute('aria-pressed') } : null;
+      if (wrong) wrong.click();
+      const after = wrong ? { disabled: wrong.disabled, pressed: wrong.getAttribute('aria-pressed') } : null;
+      document.querySelector('[data-action="grade"]').click();
+      setTimeout(() => {
+        const q = document.querySelector('.q-item[data-n="1"]');
+        const ex = q && q.querySelector('.q-explain');
+        const essay = document.querySelector('.q-item[data-n="21"] .q-explain');
+        res({
+          score: ((document.querySelector('[data-score]') || {}).textContent || '').trim(),
+          before,
+          after,
+          q1: ex ? { hidden: ex.hidden, len: ex.textContent.trim().length, text: ex.textContent.trim().slice(0, 40) } : null,
+          essay: essay ? !essay.hidden && essay.textContent.trim().length > 20 : false,
+        });
+      }, 300);
+    }, 300);
+  }, 700));
+})()`);
+check('Đề mới hiện giải thích sau khi chấm', !!explain && explain.q1 && !explain.q1.hidden && explain.q1.len > 30 && explain.essay, JSON.stringify(explain));
+
 const timer = await ev(`(() => {
   document.querySelector('[data-timer="reset"]').click();
   const before = document.querySelector('[data-clock]').textContent;
@@ -318,6 +346,34 @@ const mob = await ev(`(() => {
 check('Luyện tập mobile: mở bàn làm bài, không tràn ngang', mob.sheet && mob.overflow <= 1, JSON.stringify(mob));
 await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1200, deviceScaleFactor: 1, mobile: false });
 await sleep(300);
+
+// ---- Ảnh & nguồn ảnh ----
+await ev(`location.hash = '#/tong-quan'`);
+await sleep(700);
+const hero = await ev(`(() => {
+  const holder = document.querySelector('header.theme-hero');
+  const img = holder && holder.querySelector('img');
+  const src = holder && holder.querySelector('source');
+  return {
+    hasHero: !!holder,
+    loaded: !!img && img.complete && img.naturalWidth > 0,
+    srcset: !!(src && src.srcset),
+    alt: img ? img.getAttribute('alt') : null,
+  };
+})()`);
+check('Ảnh hero tải được + có srcset/alt', hero.hasHero && hero.loaded && hero.srcset && !!hero.alt, JSON.stringify(hero));
+
+await ev(`location.hash = '#/nguon-anh'`);
+await sleep(800);
+const creds = await ev(`(() => {
+  const cards = [...document.querySelectorAll('.credit')];
+  return {
+    cards: cards.length,
+    loaded: cards.filter((c) => { const i = c.querySelector('img'); return i && i.complete && i.naturalWidth > 0; }).length,
+    links: document.querySelectorAll('.credit-links a').length,
+  };
+})()`);
+check('Nguồn ảnh: 2 ảnh tải được + credit/link', creds.cards === 2 && creds.loaded === 2 && creds.links >= 4, JSON.stringify(creds));
 
 // console errors
 const errs = events.filter(
@@ -371,6 +427,44 @@ for (const [w, h, label] of widths) {
       const shotL = await send('Page.captureScreenshot', { format: 'png' });
       if (shotL.result?.data) fs.writeFileSync('site/_design/shots/desktop-light.png', Buffer.from(shotL.result.data, 'base64'));
       await ev(`document.querySelector('[data-theme-set="dark"]').click()`);
+
+      // Ảnh mới: overview 2 theme, danh sách luyện tập, trang đề
+      for (const theme of ['light', 'dark']) {
+        await ev(`document.querySelector('[data-theme-set="${theme}"]').click()`);
+        await ev(`location.hash = '#/tong-quan'`);
+        await sleep(700);
+        await ev(`window.scrollTo(0,0)`);
+        await sleep(250);
+        const s1 = await send('Page.captureScreenshot', { format: 'png' });
+        if (s1.result?.data) fs.writeFileSync(`site/_design/shots/theme-${theme}-overview.png`, Buffer.from(s1.result.data, 'base64'));
+        await ev(`location.hash = '#/luyen-tap'`);
+        await sleep(700);
+        await ev(`window.scrollTo(0,0)`);
+        await sleep(250);
+        const s2 = await send('Page.captureScreenshot', { format: 'png' });
+        if (s2.result?.data) fs.writeFileSync(`site/_design/shots/theme-${theme}-practice.png`, Buffer.from(s2.result.data, 'base64'));
+      }
+      await ev(`location.hash = '#/luyen-tap/de-01a'`);
+      await sleep(700);
+      await ev(`window.scrollTo(0,0)`);
+      await sleep(250);
+      const s3 = await send('Page.captureScreenshot', { format: 'png' });
+      if (s3.result?.data) fs.writeFileSync('site/_design/shots/theme-exam-columbina.png', Buffer.from(s3.result.data, 'base64'));
+
+      await ev(`location.hash = '#/luyen-tap/de-101'`);
+      await sleep(700);
+      await ev(`(() => { document.querySelector('[data-mode="take"]').click(); })()`);
+      await sleep(300);
+      await ev(`(() => {
+        const q1 = document.querySelector('.q-item[data-n="1"]');
+        const a = q1 && q1.querySelector('.opt[data-k="A"]');
+        if (a) a.click();
+        document.querySelector('[data-action="grade"]').click();
+        window.scrollTo(0, 0);
+      })()`);
+      await sleep(500);
+      const s4 = await send('Page.captureScreenshot', { format: 'png' });
+      if (s4.result?.data) fs.writeFileSync('site/_design/shots/theme-de101-graded.png', Buffer.from(s4.result.data, 'base64'));
     }
     await ev(`(() => { const c=document.querySelector('.card.is-open')||document.querySelector('.card'); if(c) c.scrollIntoView({block:'start'}); })()`);
     await sleep(300);

@@ -236,6 +236,140 @@ const printCards = await ev(`(() => {
 })()`);
 check('Mỗi trang phần có card đang mở và card đang thu gọn', printCards.rows > 0 && printCards.bodies > 0, JSON.stringify(printCards));
 
+/* ===================== ẢNH & ART DIRECTION (theme-*) ===================== */
+await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
+await ev(`location.hash = '#/tong-quan'`);
+await sleep(1200);
+const hero = await ev(`(() => {
+  const img = document.querySelector('.theme-hero img');
+  const srcset = (img && img.getAttribute('srcset')) || '';
+  const footer = document.querySelector('.app-footer a[href="#/nguon-anh"]');
+  return {
+    loaded: !!img && img.complete && img.naturalWidth > 0,
+    w: img ? img.naturalWidth : 0,
+    alt: img ? (img.getAttribute('alt') || '').length : 0,
+    srcset: srcset.split(',').length,
+    eager: img ? img.getAttribute('loading') !== 'lazy' : false,
+    watermark: !!document.querySelector('.app-footer'),
+    footer: !!footer,
+    imgs: document.images.length,
+    sw: document.documentElement.scrollWidth,
+    iw: window.innerWidth
+  };
+})()`);
+check(
+  'Tổng quan: chỉ hero được tải (1 ảnh), alt, srcset 2 mức, footer credits, không tràn',
+  hero.loaded && hero.w > 0 && hero.alt > 20 && hero.srcset >= 2 && hero.eager && hero.footer && hero.imgs === 1 && hero.sw <= hero.iw + 1,
+  JSON.stringify(hero)
+);
+await shot('theme-overview-light.png');
+
+await send('Emulation.setDeviceMetricsOverride', { width: 768, height: 1100, deviceScaleFactor: 1, mobile: false });
+await sleep(500);
+await shot('theme-tablet.png');
+await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false });
+await sleep(400);
+
+await ev(`(() => { const b = document.querySelector('[data-theme-set="dark"]'); if (b) b.click(); })()`);
+await sleep(500);
+await shot('theme-overview-dark.png');
+const darkNow = await ev(`document.documentElement.dataset.theme`);
+await ev(`(() => { const b = document.querySelector('[data-theme-set="light"]'); if (b) b.click(); })()`);
+await sleep(400);
+check('Ảnh chụp được ở cả chủ đề sáng và tối', darkNow === 'dark', 'chủ đề tối = ' + darkNow);
+
+await ev(`location.hash = '#/s/pandas-co-ban'`);
+await sleep(700);
+await shot('theme-section.png');
+
+await ev(`location.hash = '#/luyen-tap'`);
+await sleep(1200);
+const banner = await ev(`(() => {
+  const img = document.querySelector('.practice-banner img');
+  return {
+    loaded: !!img && img.complete && img.naturalWidth > 0,
+    h1: (document.querySelector('.practice-banner h1') || {}).textContent || '',
+    h: Math.round((document.querySelector('.practice-banner') || { getBoundingClientRect: () => ({ height: 0 }) }).getBoundingClientRect().height),
+    sw: document.documentElement.scrollWidth,
+    iw: window.innerWidth
+  };
+})()`);
+check('Banner Luyện tập: ảnh tải thật + h1 overlay, không tràn', banner.loaded && !!banner.h1 && banner.sw <= banner.iw + 1, JSON.stringify(banner));
+await shot('theme-practice-list.png');
+
+await ev(`location.hash = '#/luyen-tap/de-01a'`);
+await sleep(800);
+const examClean = await ev(`(() => {
+  const sheet = document.querySelector('.exam-sheet');
+  const cs = sheet ? getComputedStyle(sheet, '::before') : null;
+  return {
+    banner: document.querySelectorAll('.practice-banner').length,
+    wmDisplay: cs ? cs.display : 'thiếu',
+    wmBg: cs ? cs.backgroundImage !== 'none' : false,
+    wmPos: cs ? cs.bottom + '/' + cs.right + '/' + cs.width : '',
+    wmOpacity: cs ? cs.opacity : '',
+    sw: document.documentElement.scrollWidth,
+    iw: window.innerWidth
+  };
+})()`);
+await shot('theme-exam.png');
+await ev(`window.scrollTo(0, document.body.scrollHeight)`);
+await sleep(500);
+await shot('theme-exam-bottom.png');
+
+// mô phỏng media in: watermark phải quay lại ở góc phải dưới
+await send('Emulation.setEmulatedMedia', { media: 'print' });
+await sleep(500);
+const examPrint = await ev(`(() => {
+  const sheet = document.querySelector('.exam-sheet');
+  const cs = sheet ? getComputedStyle(sheet, '::before') : null;
+  return { display: cs ? cs.display : '', width: cs ? cs.width : '', opacity: cs ? cs.opacity : '' };
+})()`);
+await shot('theme-exam-print.png');
+await send('Emulation.setEmulatedMedia', { media: '' });
+await sleep(400);
+
+check(
+  'Trang làm đề: không lặp banner; watermark ẩn khi xem, hiện khi in (block · 140px · 0.05)',
+  examClean.banner === 0 &&
+    examClean.wmDisplay === 'none' &&
+    examClean.wmBg &&
+    examClean.wmPos === '6px/0px/140px' &&
+    examClean.sw <= examClean.iw + 1 &&
+    examPrint.display === 'block' &&
+    examPrint.width === '140px' &&
+    Number(examPrint.opacity) <= 0.06,
+  JSON.stringify({ màn_hình: examClean, khi_in: examPrint })
+);
+
+await ev(`location.hash = '#/nguon-anh'`);
+await sleep(1200);
+const creditsInfo = await ev(`(() => ({
+  items: document.querySelectorAll('.credit').length,
+  imgs: [...document.querySelectorAll('.credit img')].filter((i) => i.complete && i.naturalWidth > 0).length,
+  h1: (document.querySelector('h1') || {}).textContent || '',
+  json: !!document.querySelector('a[href="assets/img/credits.json"]'),
+  sw: document.documentElement.scrollWidth,
+  iw: window.innerWidth
+}))()`);
+await shot('theme-credits.png');
+
+check(
+  'Trang Nguồn ảnh: 2 tranh tải được + license + link credits.json, không tràn',
+  creditsInfo.items === 2 && creditsInfo.imgs === 2 && creditsInfo.json && creditsInfo.sw <= creditsInfo.iw + 1,
+  JSON.stringify(creditsInfo)
+);
+
+await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+await ev(`location.hash = '#/tong-quan'`);
+await sleep(1200);
+const mobHero = await ev(`(() => {
+  const i = document.querySelector('.theme-hero img');
+  return { sw: document.documentElement.scrollWidth, iw: window.innerWidth, loaded: !!i && i.complete && i.naturalWidth > 0 };
+})()`);
+check('390px: hero không tràn ngang và ảnh tải', mobHero.sw <= mobHero.iw + 1 && mobHero.loaded, JSON.stringify(mobHero));
+await shot('theme-mobile.png');
+
 /* ===================== LUYỆN TẬP ===================== */
 const secs = (s) => {
   const m = /^(\d+):(\d{2})$/.exec(String(s).trim());

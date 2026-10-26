@@ -40,10 +40,10 @@
     <aside class="sidebar" id="sidebar" aria-label="Mục lục sổ tay">
       <div class="brand">
         <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path class="mark-spine" d="M5 3v18" />
-          <circle class="mark-ring" cx="5" cy="7.5" r="2.1" />
-          <circle class="mark-ring" cx="5" cy="16.5" r="2.1" />
-          <path class="mark-rule" d="M10 7.5h10M10 12h10M10 16.5h6.5" />
+          <path class="mark-moon" d="M15.4 2.4a7.6 7.6 0 1 0 3.8 11.4A8.8 8.8 0 0 1 15.4 2.4Z" />
+          <path class="mark-rule" d="M3 17.5h11M3 20.5h7" />
+          <path class="mark-rule" d="M15.6 20.5V13l5-1.6v7" />
+          <circle class="mark-dot" cx="13.9" cy="20.5" r="1.7" />
         </svg>
         <span class="brand-text">
           <span class="brand-name">Sổ tay DSE2049</span>
@@ -56,18 +56,39 @@
           <circle cx="7" cy="7" r="4.4" />
           <path d="M10.4 10.4 14 14" />
         </svg>
-        <span class="search-label">Tìm công thức, bẫy…</span>
+          <span class="search-label">Tìm công thức…</span>
         <kbd class="kbd" id="searchKbd">Ctrl K</kbd>
       </button>
 
       <nav class="nav" aria-label="Điều hướng chính">
-        <a class="nav-item" href="#/tong-quan" data-nav="tong-quan">Tổng quan</a>
+        <a class="nav-item" href="#/tong-quan" data-nav="tong-quan">
+          <span class="nav-lead">
+            <svg class="nav-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <circle cx="8" cy="8" r="6" />
+              <path d="M10.7 5.3 9.2 9.2 5.3 10.7 6.8 6.8z" />
+            </svg>
+            <span>Tổng quan</span>
+          </span>
+        </a>
         <a class="nav-item" href="#/bay" data-nav="bay">
-          <span>Từ điển bẫy</span>
+          <span class="nav-lead">
+            <svg class="nav-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M13.2 2.6c-4 .2-6.7 2.2-8 5.4L3 12.4l1.2 1.2 4.1-4.1c2.9-1.4 4.6-4 4.4-6.6z" />
+              <path d="M4.4 12.6 2.6 14.4" />
+            </svg>
+            <span>Từ điển bẫy</span>
+          </span>
           <span class="nav-count num" id="navTrapCount">0</span>
         </a>
         <a class="nav-item" href="#/luyen-tap" data-nav="luyen-tap">
-          <span>Luyện tập</span>
+          <span class="nav-lead">
+            <svg class="nav-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path class="is-fill" d="M11.6 1.6A6.4 6.4 0 1 0 13.4 10 7.2 7.2 0 0 1 11.6 1.6z" />
+              <path d="M7.4 13.6V8.2l4-1.2" />
+              <circle cx="6" cy="13.6" r="1.5" />
+            </svg>
+            <span>Luyện tập</span>
+          </span>
           <span class="nav-count num" id="navExamCount">0</span>
         </a>
         <p class="nav-label">Phần nội dung</p>
@@ -115,6 +136,13 @@
 
     <main class="sheet" id="sheet" tabindex="-1">
       <div class="view" id="view"></div>
+      <footer class="app-footer">
+        <p class="foot-credit">
+          Ảnh: fan art Columbina của <a href="https://x.com/Rabbit_candy_i" target="_blank" rel="noopener noreferrer">@Rabbit_candy_i</a>
+          và <a href="https://x.com/yeurei" target="_blank" rel="noopener noreferrer">@yeurei</a> — dùng cho mục đích học tập cá nhân.
+        </p>
+        <a href="#/nguon-anh">Nguồn ảnh</a>
+      </footer>
     </main>
 
     <div class="overlay" id="overlay" hidden>
@@ -161,6 +189,7 @@
     <script src="data/07-bay.js"></script>
     <script src="data/08-luyen-tap.js"></script>
     <script src="data/09-bo-19-cau.js"></script>
+    <script src="data/10-de-moi.js"></script>
     <!-- data:end -->
     <script src="assets/app.js"></script>
   </body>

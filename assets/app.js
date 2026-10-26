@@ -471,7 +471,8 @@
           ' ↗</a>'
         : '';
     if (!exam && !src) return '';
-    out = '<footer class="card-foot">' + exam + src + '</footer>';
+    var right = src ? '<span class="foot-right">' + featherIco() + src + '</span>' : '';
+    out = '<footer class="card-foot">' + exam + right + '</footer>';
     return out;
   }
 
@@ -578,18 +579,26 @@
     var h = '';
 
     var TITLE = 'Sổ tay công thức & bẫy thi';
-    h += '<header class="ov-head">';
-    h += '<p class="sec-meta">' + esc([meta.course, meta.title, meta.term].filter(has).join(' · ')) + '</p>';
+    // dải hero thấp trên tranh màu nước, chữ trắng nằm trong vùng scrim đặc
+    h += '<header class="theme-hero">';
+    h += picture(
+      IMG_HERO,
+      'Fan art Columbina: thiếu nữ áo trắng bước trên mặt nước phẳng, đàn bồ câu trắng bay quanh dưới vầng trăng và mây.',
+      { w900: 900, h900: 514, w1600: 1600, cls: 'hero-media', eager: true, sizes: '(min-width: 900px) calc(100vw - 300px), calc(100vw - 40px)' }
+    );
+    h += '<div class="hero-copy">';
+    h += '<p class="hero-meta">' + esc([meta.course, meta.title, meta.term].filter(has).join(' · ')) + '</p>';
     h += '<h1>' + esc(TITLE) + '</h1>';
     // tagline của data mở đầu bằng đúng tên sổ tay — bỏ phần lặp vì tiêu đề đang đứng ngay trên
     var tag = txt(meta.tagline);
     if (tag.indexOf(TITLE) === 0) tag = tag.slice(TITLE.length).replace(/^[\s—–-]+/, '').trim();
-    if (tag) h += '<p class="ov-tag">' + esc(tag) + '</p>';
+    if (tag) h += '<p class="hero-line">' + esc(tag) + '</p>';
     var facts = [meta.exam, meta.version].filter(has).join(' · ');
-    if (facts) h += '<p class="ov-exam">' + esc(facts) + '</p>';
-    h += '<div class="ov-actions">' + '<button class="solid-btn" type="button" data-action="search">Tìm công thức · Ctrl K</button>';
+    if (facts) h += '<p class="hero-exam">' + esc(facts) + '</p>';
+    h += '<div class="hero-actions">' + '<button class="solid-btn" type="button" data-action="search">Tìm công thức · Ctrl K</button>';
     if (traps.length) h += '<a class="ghost-btn" href="#/bay">Mở từ điển bẫy</a>';
-    h += '</div></header>';
+    if (exams.length) h += '<a class="ghost-btn" href="#/luyen-tap">Mở đề luyện tập</a>';
+    h += '</div></div></header>';
 
     h += '<div class="stats">' +
       statHtml('Phần', sections.length) +
@@ -649,6 +658,7 @@
     current.route = 'tong-quan';
     current.section = null;
     current.open = {};
+    window.scrollTo(0, 0);
   }
 
   function statHtml(label, value) {
@@ -779,6 +789,7 @@
     if (fs.length > 1) h += '<button class="ghost-btn" type="button" data-action="toggle-all">Mở tất cả</button>';
     h += '</div></div>';
     if (has(s.blurb)) h += '<p class="sec-blurb">' + esc(txt(s.blurb)) + '</p>';
+    h += ornDivider();
     h += '</header>';
 
     var mental = has(s.mentalModel)
@@ -893,7 +904,7 @@
       '</span> bẫy</span>';
     if (quiz.length) h += '<button class="solid-btn" type="button" data-action="quiz">Tự kiểm</button>';
     h += '</div></div>';
-    h += '<p class="sec-blurb">Những chỗ hay sai trong thi và lab: cơ chế vì sao sai, và cách phản đòn lại. Gõ không dấu cũng lọc được.</p></header>';
+    h += '<p class="sec-blurb">Những chỗ hay sai trong thi và lab: cơ chế vì sao sai, và cách phản đòn lại. Gõ không dấu cũng lọc được.</p>' + ornDivider() + '</header>';
 
     if (groups.length > 1) {
       h += '<div class="tabs" role="tablist" aria-label="Lọc theo nhóm">' +
@@ -1275,25 +1286,32 @@
     }
 
     var h = '';
-    h += '<header class="sec-head">';
-    h += '<p class="sec-meta">' + esc('Đề luyện tập giữa kỳ · ' + exams.length + ' đề · ' + totalItems + ' câu') + '</p>';
-    h += '<div class="sec-title-row"><h1>Luyện tập</h1><div class="sec-tools">' +
-      '<span class="count-chip"><span class="num" data-exam-count>' +
-      exams.length +
-      '</span> đề</span>' +
-      resume +
-      '</div></div>';
-    h +=
-      '<p class="sec-blurb">Đọc đề trước ở chế độ Xem đề, rồi chuyển sang Làm bài để chọn A–D, đánh dấu câu cần xem lại và chấm điểm ngay trên trang.</p>';
-    h += '</header>';
-
     if (!exams.length) {
+      h += '<header class="sec-head"><p class="sec-meta">Đề luyện tập giữa kỳ</p>';
+      h += '<div class="sec-title-row"><h1>Luyện tập</h1></div></header>';
       h += '<p class="empty">Chưa có đề nào trong dữ liệu. Khi file <b>08-luyen-tap.js</b> được nạp, danh sách đề sẽ hiện ở đây.</p>';
       viewEl.innerHTML = h;
       setTopbar('', 'Luyện tập', 'luyen-tap');
       current.route = 'exams';
       return;
     }
+
+    var metaLine = 'Đề luyện tập giữa kỳ · ' + exams.length + ' đề · ' + totalItems + ' câu';
+    h += '<header class="practice-banner">' +
+      '<div class="pb-copy"><h1>Phòng luyện đề</h1><p class="pb-line">' +
+      esc(metaLine) +
+      '</p></div>' +
+      '<img class="pb-portrait" src="assets/img/columbina-portrait-480.webp" ' +
+      'srcset="assets/img/columbina-portrait-480.webp 480w, assets/img/columbina-portrait-900.webp 900w" ' +
+      'sizes="112px" width="480" height="480" loading="lazy" decoding="async" ' +
+      'alt="Fan art Columbina: khuôn mặt nhắm mắt giữa hoa xanh và ánh trăng, nền đêm tối.">' +
+      '</header>';
+    h += '<div class="list-head"><p class="sec-blurb">Đọc đề trước ở chế độ Xem đề, rồi chuyển sang Làm bài để chọn A–D, đánh dấu câu cần xem lại và chấm điểm ngay trên trang.</p>' +
+      '<div class="sec-tools"><span class="count-chip"><span class="num" data-exam-count>' +
+      exams.length +
+      '</span> đề</span>' +
+      resume +
+      '</div></div>';
 
     h += '<div class="filter-row"><input class="filter-input" type="text" data-exam-filter autocomplete="off" spellcheck="false" placeholder="Lọc nhanh: mã đề, chủ đề, cụm" aria-label="Lọc nhanh đề"><span class="filter-count"><span class="num" data-exam-visible>' +
       exams.length +
@@ -1405,6 +1423,7 @@
     }
 
     h += '<p class="q-result" hidden></p>';
+    h += '<p class="q-explain" hidden></p>';
     if (has(item.model)) {
       h += '<div class="q-model" hidden><span class="lbl">Đáp án gợi ý.</span> ' + esc(txt(item.model)) + '</div>';
     }
@@ -1689,6 +1708,11 @@
         r.textContent = '';
         r.className = 'q-result';
       }
+      var ex = $('.q-explain', q);
+      if (ex) {
+        ex.hidden = true;
+        ex.textContent = '';
+      }
     });
   }
 
@@ -1742,6 +1766,16 @@
         res.className = 'q-result ' + (ok ? 'is-right' : chosen ? 'is-wrong' : 'is-mute');
         res.textContent = ok ? 'Đúng — đáp án ' + key : chosen ? 'Sai — đáp án đúng là ' + key : 'Chưa chọn — đáp án ' + key;
       }
+      var ex = $('.q-explain', q);
+      if (ex) {
+        if (has(i.explain)) {
+          ex.textContent = 'Giải thích. ' + txt(i.explain);
+          ex.hidden = false;
+        } else {
+          ex.hidden = true;
+          ex.textContent = '';
+        }
+      }
     });
     examItems(e)
       .filter(function (i) {
@@ -1755,6 +1789,16 @@
           res.hidden = false;
           res.className = 'q-result is-mute';
           res.textContent = 'Tự luận — không chấm tự động.';
+        }
+        var ex = $('.q-explain', q);
+        if (ex) {
+          if (has(i.explain)) {
+            ex.textContent = 'Giải thích. ' + txt(i.explain);
+            ex.hidden = false;
+          } else {
+            ex.hidden = true;
+            ex.textContent = '';
+          }
         }
       });
     pr.graded = true;
@@ -1781,6 +1825,16 @@
       $$('.opt', q).forEach(function (o) {
         o.classList.toggle('is-right', o.dataset.k === key);
       });
+    });
+    examItems(e).forEach(function (i) {
+      if (!has(i.explain)) return;
+      var q = qItem(i.n);
+      if (!q) return;
+      var ex = $('.q-explain', q);
+      if (ex) {
+        ex.textContent = 'Giải thích. ' + txt(i.explain);
+        ex.hidden = false;
+      }
     });
     pr.revealed = true;
     showAnswerSource(e);
@@ -2066,6 +2120,147 @@
     if (s) s.hidden = !open;
   }
 
+  /* ---------- 7g. Thuỷ triều: hình vẽ tự tạo ----------------------------- */
+  var IMG_HERO = 'assets/img/columbina-hero';
+  var IMG_BANNER = 'assets/img/columbina-portrait';
+
+  function waveIco() {
+    return (
+      '<svg class="nav-ico" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
+      '<path d="M2 8.4c1.4-2 2.8-2 4.2 0s2.8 2 4.2 0 2.8-2 4.2 0"/></svg>'
+    );
+  }
+
+  // dấu phân cách section: gợn sóng + trăng lưỡi liềm, nét 1.25px cùng bộ nét với icon
+  function ornDivider() {
+    return (
+      '<svg class="orn-divider" viewBox="0 0 180 14" aria-hidden="true" focusable="false">' +
+      '<path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" ' +
+      'd="M2 7.6c6-5.4 12-5.4 18 0s12 5.4 18 0 12-5.4 18 0 12 5.4 18 0 12-5.4 18 0 12 5.4 18 0 12-5.4 18 0 12 5.4 18 0"/>' +
+      '<path class="orn-moon" d="M162 2.2a5.8 5.8 0 1 0 3.8 7.6 6.4 6.4 0 0 1-3.8-7.6z"/></svg>'
+    );
+  }
+
+  function featherIco() {
+    return (
+      '<svg class="orn-feather" viewBox="0 0 16 16" aria-hidden="true" focusable="false">' +
+      '<path d="M13.2 2.6c-4 .2-6.7 2.2-8 5.4L3 12.4l1.2 1.2 4.1-4.1c2.9-1.4 4.6-4 4.4-6.6z"/>' +
+      '<path d="M4.4 12.6 2.6 14.4"/></svg>'
+    );
+  }
+
+  // ảnh có srcset 900/1600, width/height thật, loading lazy trừ hero
+  function picture(base, alt, o) {
+    var w900 = o.w900;
+    var h900 = o.h900;
+    var w1600 = o.w1600;
+    var src900 = base + '-900.webp';
+    var src1600 = base + '-1600.webp';
+    var sizes = o.sizes || '(max-width: 899px) calc(100vw - 40px), calc(100vw - 300px)';
+    return (
+      '<picture class="' +
+      esc(o.cls) +
+      '"><source media="(min-width: 900px)" srcset="' +
+      src1600 +
+      ' ' +
+      w1600 +
+      'w, ' +
+      src900 +
+      ' ' +
+      w900 +
+      'w" sizes="' +
+      sizes +
+      '"><img src="' +
+      src900 +
+      '" srcset="' +
+      src900 +
+      ' ' +
+      w900 +
+      'w, ' +
+      src1600 +
+      ' ' +
+      w1600 +
+      'w" sizes="' +
+      sizes +
+      '" width="' +
+      w900 +
+      '" height="' +
+      h900 +
+      '" alt="' +
+      esc(alt) +
+      '"' +
+      (o.eager ? '' : ' loading="lazy"') +
+      ' decoding="async"></picture>'
+    );
+  }
+
+  var CREDITS = [
+    {
+      base: IMG_HERO,
+      w900: 900,
+      h900: 514,
+      w1600: 1600,
+      title: 'Columbina — “She dances on still water”',
+      creator: '@Rabbit_candy_i',
+      license: 'fan art · dùng cho mục đích học tập cá nhân',
+      page: 'https://x.com/Rabbit_candy_i/status/2111398120999547319',
+      artistUrl: 'https://x.com/Rabbit_candy_i',
+      alt: 'Fan art Columbina: thiếu nữ áo trắng bước trên mặt nước phẳng, đàn bồ câu trắng bay quanh dưới vầng trăng và mây.',
+      used: 'Dải mở đầu trang Tổng quan.'
+    },
+    {
+      base: IMG_BANNER,
+      w900: 900,
+      h900: 900,
+      w1600: 1600,
+      title: 'Columbina dưới trăng',
+      creator: '@yeurei',
+      license: 'fan art · dùng cho mục đích học tập cá nhân',
+      page: 'https://x.com/yeurei/status/1973412967644537324',
+      artistUrl: 'https://x.com/yeurei',
+      alt: 'Fan art Columbina: khuôn mặt nhắm mắt giữa hoa xanh và ánh trăng, nền đêm tối.',
+      used: 'Banner đầu trang danh sách Luyện tập.'
+    }
+  ];
+
+  function renderCredits() {
+    stopTimer();
+    setSheet(false);
+    pr = null;
+    var h = '';
+    h += '<header class="sec-head"><p class="sec-meta">Hai bức fan art Columbina dùng trong sổ tay — cho mục đích học tập cá nhân</p>';
+    h += '<div class="sec-title-row"><h1>Nguồn ảnh</h1><div class="sec-tools"><a class="ghost-btn" href="#/tong-quan">Về tổng quan</a></div></div>';
+    h += '<p class="sec-blurb">Không có ảnh nào ngoài hai bức dưới đây. Ảnh thuộc về tác giả; nếu công khai ngoài phạm vi cá nhân, hãy xin phép tác giả trước.</p>';
+    h += ornDivider() + '</header>';
+    h += '<div class="credit-list">' +
+      CREDITS.map(function (c) {
+        return (
+          '<article class="credit">' +
+          picture(c.base, c.alt, { w900: c.w900, h900: c.h900, w1600: c.w1600, cls: 'credit-media' }) +
+          '<div><h2>' +
+          esc(c.title) +
+          '</h2><p>' +
+          esc(c.creator + ' · ' + c.license + ' · dùng ở: ' + c.used) +
+          '</p><p class="credit-links"><a href="' +
+          esc(c.page) +
+          '" target="_blank" rel="noopener noreferrer">Bài đăng ↗</a>' +
+          (c.artistUrl
+            ? '<a href="' +
+              esc(c.artistUrl) +
+              '" target="_blank" rel="noopener noreferrer">Tác giả ↗</a>'
+            : '') +
+          '<a href="assets/img/credits.json">credits.json</a></p></div>' +
+          '</article>'
+        );
+      })
+      .join('') +
+      '</div>';
+    viewEl.innerHTML = h;
+    setTopbar('', 'Nguồn ảnh', '');
+    current.route = 'credits';
+    window.scrollTo(0, 0);
+  }
+
   /* ---------- 8. mục lục (sidebar) --------------------------------------- */
   function renderNav() {
     var host = $('#navSections');
@@ -2085,9 +2280,11 @@
           '" data-section="' +
           esc(txt(s.id)) +
           '">' +
-          '<span class="nav-sec-top"><span class="nav-sec-name">' +
+          '<span class="nav-sec-top"><span class="nav-sec-lead">' +
+          waveIco() +
+          '<span class="nav-sec-name">' +
           esc(has(s.title) ? txt(s.title) : txt(s.id)) +
-          '</span><span class="nav-sec-num num">' +
+          '</span></span><span class="nav-sec-num num">' +
           done +
           '/' +
           fs.length +
@@ -2817,6 +3014,7 @@
     } else if (parts[0] === 's') renderSection(parts[1], parts[2]);
     else if (parts[0] === 'tong-quan') renderOverview();
     else if (parts[0] === 'tu-kiem') renderQuiz();
+    else if (parts[0] === 'nguon-anh') renderCredits();
     else if (sections.length) renderSection(sections[0].id);
     else renderOverview();
 

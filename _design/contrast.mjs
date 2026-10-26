@@ -40,8 +40,8 @@ const ratio = (a, b) => {
   return Math.round(((Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05)) * 100) / 100;
 };
 
-const bases = ['ground', 'surface', 'raised', 'raised-2', 'active'];
-const texts = ['text', 'muted', 'faint', 'accent', 'positive', 'negative'];
+const bases = ['ground', 'surface', 'raised', 'raised-2'];
+const texts = ['text', 'muted', 'faint', 'accent', 'positive', 'negative', 'warning'];
 const extras = [
   ['accent-deep', 'accent-soft'],
   ['positive-ink', 'positive-soft'],
@@ -55,7 +55,27 @@ const extras = [
   ['muted', 'neutral-soft'],
   ['muted', 'accent-soft'],
   ['surface', 'text'],
-  ['text', 'hl-3']
+  ['text', 'active'],
+  ['text', 'hl-1'],
+  ['text', 'hl-2'],
+  ['text', 'hl-3'],
+  ['accent-2-deep', 'accent-2-soft'],
+  ['warning-ink', 'warning-soft'],
+  ['tok-str', 'raised'],
+  ['tok-num', 'raised'],
+  ['tok-kw', 'raised'],
+  ['tok-com', 'raised'],
+  ['tok-fn', 'raised'],
+  ['tok-com', 'raised-2']
+];
+
+// viền trạng thái (accent/đúng/sai/cảnh báo) tối thiểu 3:1 với nền tờ giấy
+const stateBorders = [
+  ['accent', 'surface'],
+  ['accent', 'raised'],
+  ['positive', 'surface'],
+  ['negative', 'surface'],
+  ['warning', 'surface']
 ];
 
 let bad = 0;
@@ -82,6 +102,14 @@ for (const [name, t] of [
       console.log(`  ${f.padEnd(10)} trên ${b.padEnd(9)} ${String(r).padStart(6)}:1  <-- THIẾU 4.5`);
     }
   }
+  for (const [f, b] of stateBorders) {
+    if (!t[f] || !t[b]) continue;
+    const r = ratio(t[f], t[b]);
+    if (r < 3) {
+      bad++;
+      console.log(`  viền ${f.padEnd(8)} trên ${b.padEnd(9)} ${String(r).padStart(6)}:1  <-- THIẾU 3:1`);
+    }
+  }
   for (const [f, b] of [
     ['border', 'surface'],
     ['border', 'ground'],
@@ -93,6 +121,27 @@ for (const [name, t] of [
   }
   const clear = texts.every((f) => bases.every((b) => !t[f] || !t[b] || ratio(t[f], t[b]) >= 4.5));
   console.log(clear ? '  chữ chính/mờ trên mọi nền: đạt 4.5:1' : '  có cặp chưa đạt');
+}
+
+// Chữ trắng nằm trên ảnh: scrim trung tính rgba(8,11,12,α) — tính trường hợp tệ nhất
+// là vùng sáng nhất của tranh (trắng tinh), để chắc chữ vẫn đạt AA ở mọi crop.
+console.log('\n=== CHỮ TRÊN ẢNH (scrim trung tính) ===');
+const scrimOver = (a, bg) => bg.map((c) => Math.round(a * 8 + (1 - a) * c));
+for (const a of [0.92, 0.78, 0.72, 0.7]) {
+  for (const [labelBg, bg] of [
+    ['trắng', [255, 255, 255]],
+    ['xám sáng', [176, 186, 192]]
+  ]) {
+    const c = scrimOver(a, bg);
+    const hx = '#' + c.map((n) => n.toString(16).padStart(2, '0')).join('');
+    const r = ratio('#ffffff', hx);
+    if (r < 4.5) {
+      bad++;
+      console.log(`  trắng trên scrim α=${a} (ảnh ${labelBg} → ${hx}) ${r}:1  <-- THIẾU 4.5`);
+    } else {
+      console.log(`  trắng trên scrim α=${a} (ảnh ${labelBg} → ${hx}) ${r}:1 ✓`);
+    }
+  }
 }
 console.log(bad ? `\n${bad} cặp dưới ngưỡng.` : '\nToàn bộ cặp chữ đạt AA (4.5:1).');
 process.exit(bad ? 1 : 0);
